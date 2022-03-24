@@ -1,0 +1,166 @@
+﻿@model proje1b.Models.Sorgu
+
+@{
+    ViewBag.Title = "Index";
+}
+
+
+
+<style>
+    #map {
+        height: 500px;
+    }
+</style>
+
+<div id="map">
+
+</div>
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<div class="hadee hade">
+    @using (Html.BeginForm("Index", "Harita", FormMethod.Post))
+    {
+
+        @Html.TextBoxFor(model => model.BaslangicTarihi, new
+        {
+            //@class = "form-control",
+            @class = "col-sm",
+            type = "date"
+        })
+        @Html.TextBox("baslangicSaat", "", new { placeholder = "Başlangic Saat", @class = "col-sm" });
+        @Html.TextBox("bitisSaat", "", new { placeholder = "Bitiş Saat", @class = "col-sm" });
+        @Html.TextBox("secilenarabaID", "", new { placeholder = "Araba ID", @class = "col-sm" })
+        <input type="submit" value="Ara" class="col-sm" />
+    }
+</div>
+<script>
+
+    //var myJsvariable = $('@ViewBag.kullaniciAdi').val();
+
+
+    var map;
+    var markers = [];
+    var latarr = new Array();
+    var longarr = new Array();
+    var aracidleri = new Array();
+    var temp = new Array();
+    var type1 = new Array();
+    var type2 = new Array();
+    let url = "http://maps.google.com/mapfiles/ms/icons/";
+    function initMap() {
+
+
+        $(document).ready(function () {
+            var myJsvariable = '@ViewBag.kullaniciAdi';
+            console.log("hadeee2 == " + myJsvariable);
+            $.ajax({
+                url: "/Harita/HaritaIndex",
+                type: "POST",
+                dataType: "json",
+                data: myJsvariable,
+                success: function (mydata) {
+                    let lastid = 0;
+                    let indxChange = 0;
+                    const obj = JSON.stringify(mydata);
+                    const veri = JSON.parse(obj);
+                    for (let indx = 0; indx < veri.length; indx++) {
+                        if (lastid != veri[indx].ArabaID) {
+                            lastid = veri[indx].ArabaID;
+                            indxChange = indx;
+                        }
+                        aracidleri.push(veri[indx].ArabaID);
+                        latarr.push(veri[indx].Lat);
+                        longarr.push(veri[indx].Long);
+                    }
+                    for (let indx = 0; indx < latarr.length; indx++) {
+                        //console.log(latarr[indx] + " " + longarr[indx]);
+                    }
+
+                    url += "blue" + "-dot.png";
+                    let mapOptions = {
+                        center: new google.maps.LatLng('60.128162', '18.643501'),
+                        zoom: 3,
+                        mapTypeId: 'roadmap'
+                    }
+
+                    map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+                    console.log(latarr.length + "hadee");
+                    console.log("indxchange ==" + indxChange);
+                    for (let indx = 0; indx <= latarr.length; indx++)
+                    {
+                        if (indx >= indxChange && indxChange != 0) {
+                            var marker = new google.maps.Marker({
+                                position: { lat: Number(latarr[indx]), lng: Number(longarr[indx]) },
+                                map: map,
+                                icon: {
+                                    url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                                }
+                            });
+
+                        }
+                        else {
+                            var marker = new google.maps.Marker({
+                                position: { lat: Number(latarr[indx]), lng: Number(longarr[indx]) },
+                                map: map
+                            });
+                        }
+
+
+                        markers.push(marker);
+
+
+                    }
+
+                }
+            });
+
+
+        });
+
+
+
+
+
+        //$.getJSON("/Harita/HaritaIndex/", function (data) {
+        //    const obj = JSON.stringify(data);
+        //    const veri = JSON.parse(obj);
+        //    for (let indx = 0; indx < veri.length; indx++) {
+
+        //        latarr.push(veri[indx].Lat);
+        //        longarr.push(veri[indx].Long);
+        //    }
+        //    for (let indx = 0; indx < latarr.length; indx++) {
+        //        //console.log(latarr[indx] + " " + longarr[indx]);
+        //    }
+
+        //    let mapOptions = {
+        //        center: new google.maps.LatLng('60.128162', '18.643501'),
+        //        zoom: 3,
+        //        mapTypeId: 'roadmap'
+        //    }
+
+        //    map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+        //    console.log(latarr.length + "hadee");
+
+        //    for (let indx = 0; indx < latarr.length; indx++) {
+        //        var marker = new google.maps.Marker({
+        //            position: { lat: Number(latarr[indx]), lng: Number(longarr[indx]) },
+        //            map: map
+        //        });
+
+        //        markers.push(marker);
+
+        //    }
+
+        //});
+
+
+    }
+
+
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBw_h-tfJgq0Vw7EPcsQjJvbaNKiLYceAQ&callback=initMap"></script>
+
+
